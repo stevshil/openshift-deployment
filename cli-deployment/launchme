@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Script to launch NGINX, ActiveMQ and Postgres from CLI commands
+
+oc new-project $1
+
+oc new-app --docker-image=docker.io/nginx
+oc scale dc nginx --replicas=2
+oc new-app --docker-image=docker.io/rmohr/activemq --name=activemq
+oc new-app --docker-image=docker.io/postgres --name=postgres \
+-e POSTGRES_HOST_AUTH_METHOD=trust \
+-e POSTGRES_PASSWORD=Secret123
+
+oc expose svc nginx --hostname=web.steve.oc.academy.grads.al-labs.co.uk
+oc expose svc activemq --hostname=amq.steve.oc.academy.grads.al-labs.co.uk --port=8161

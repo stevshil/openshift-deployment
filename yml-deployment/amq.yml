@@ -1,0 +1,124 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    openshift.io/generated-by: Steve Shilling
+  labels:
+    app: activemq
+  name: activemq
+spec:
+  replicas: 1
+  selector:
+    app: activemq
+    deploymentconfig: activemq
+  strategy:
+    activeDeadlineSeconds: 21600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        app: activemq
+        deploymentconfig: activemq
+    spec:
+      containers:
+      - image: docker.io/rmohr/activemq
+        imagePullPolicy: Always
+        name: activemq
+        ports:
+        - containerPort: 5672
+          protocol: TCP
+        - containerPort: 61613
+          protocol: TCP
+        - containerPort: 61614
+          protocol: TCP
+        - containerPort: 61616
+          protocol: TCP
+        - containerPort: 8161
+          protocol: TCP
+        - containerPort: 1883
+          protocol: TCP
+        resources: {}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+  test: false
+  triggers:
+  - type: ConfigChange
+status: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    openshift.io/generated-by: Steve Shilling
+  labels:
+    app: activemq
+  name: activemq
+spec:
+  ports:
+  - name: 1883-tcp
+    port: 1883
+    protocol: TCP
+    targetPort: 1883
+  - name: 5672-tcp
+    port: 5672
+    protocol: TCP
+    targetPort: 5672
+  - name: 8161-tcp
+    port: 8161
+    protocol: TCP
+    targetPort: 8161
+  - name: 61613-tcp
+    port: 61613
+    protocol: TCP
+    targetPort: 61613
+  - name: 61614-tcp
+    port: 61614
+    protocol: TCP
+    targetPort: 61614
+  - name: 61616-tcp
+    port: 61616
+    protocol: TCP
+    targetPort: 61616
+  selector:
+    app: activemq
+    deploymentconfig: activemq
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
+
+---
+
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: activemq
+  name: activemq
+spec:
+  host: amqyml.steve.oc.academy.grads.al-labs.co.uk
+  port:
+    targetPort: 8161
+  to:
+    kind: Service
+    name: activemq
+    weight: 100
+  wildcardPolicy: None
+status:
+  ingress:
+  - conditions:
+    host: amqyml.steve.oc.academy.grads.al-labs.co.uk
+    routerName: router
+    wildcardPolicy: None
